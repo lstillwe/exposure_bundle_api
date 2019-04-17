@@ -1,0 +1,278 @@
+---
+swagger: "2.0"
+info:
+  description: "This is the Data Translator exposures api. It takes a file of lat,lon\
+    \ values, (and date range as appropriate) and retrieves coresponding data for\
+    \ CMAQ, roadway, and socio-economic exposures\n"
+  version: "1.0.0"
+  title: "Exposure Bundle API"
+  contact:
+    name: "Lisa Stillwell"
+    email: "lisa@renci.org"
+  license:
+    name: "MIT"
+    url: "http://opensource.org/licenses/MIT"
+host: "0.0.0.0:8080"
+basePath: "/exposure-bundle-api/1.0.0"
+schemes:
+- "https"
+paths:
+  /exposures:
+    post:
+      summary: "provided with list of lat,lons in a file (1 pair on each line) will\
+        \ return a bundle of exposure types (CMAQ, roadway, & socio-economic)"
+      description: "By passing in the appropriate options, you can get a bundle of\
+        \ exposure types (CMAQ, roadway, & socio-economic)\n"
+      operationId: "get_exposures"
+      consumes:
+      - "multipart/form-data"
+      parameters:
+      - name: "start_date"
+        in: "query"
+        description: "start date of range (ex: 2010-01-01) - if not provided, no CMAQ\
+          \ data will be returned"
+        required: false
+        type: "string"
+        format: "date"
+      - name: "end_date"
+        in: "query"
+        description: "end date of range (ex: 2010-01-02) - if not provided, no CMAQ\
+          \ data will be returned"
+        required: false
+        type: "string"
+        format: "date"
+      - name: "coords_file"
+        in: "formData"
+        description: "input file with list of lat,lon coordinates (1 pair per line;\
+          \ decimal format - WGS84 assumed)"
+        required: true
+        type: "file"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/ExposuresBundle"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+definitions:
+  ExposuresBundle:
+    type: "object"
+    properties:
+      latitude1:
+        type: "string"
+        example: "35.7"
+      longitude1:
+        type: "string"
+        example: "-80.33"
+      cmaq:
+        $ref: "#/definitions/ExposuresBundle_cmaq"
+      roadway:
+        $ref: "#/definitions/ExposuresBundle_roadway"
+      socio-econ:
+        $ref: "#/definitions/ExposuresBundle_socioecon"
+    example:
+      longitude1: "-80.33"
+      cmaq:
+        values:
+        - variable: "o3"
+          cmaq_output:
+          - date_time: "2010-01-01 00:00:00"
+            value: 49.819595
+          - date_time: "2010-01-01 00:00:00"
+            value: 49.819595
+        - variable: "o3"
+          cmaq_output:
+          - date_time: "2010-01-01 00:00:00"
+            value: 49.819595
+          - date_time: "2010-01-01 00:00:00"
+            value: 49.819595
+      roadway: "{\"aadt\":45000,\"distance\":113.16539796,\"roadtype\":\"Urban Restricted\
+        \ Access\",\"route_id\":\"20000015068\",\"speed\":45,\"through_lanes\":4}"
+      latitude1: "35.7"
+      socio-econ:
+        EstTotalPop: "745"
+        EstTotalPop25Plus: "474"
+        EstPropPersons25PlusHighSchoolMax_SE: "0.0764804287594837"
+        EstPropPersons5PlusNoEnglish_SE: "0.040387048517137"
+        EstPropHouseholdsNoAuto_SE: "0.039252128205847"
+        EstPropNonHispWhite: "0.763758389261745"
+        EstTotalPop25Plus_SE: "76.006249743031"
+        MedianHouseholdIncome: "$29744.00"
+        EstTotalPop_SE: "137.530360284557"
+        EstPropPersonsNoHealthIns: "0.183892617449664"
+        geoid: "15000US010010201001"
+        EstPropHouseholdsNoAuto: "0.0387323943661972"
+        MedianHouseholdIncome_SE: "20687.8291659613"
+        EstPropPersonsNoHealthIns_SE: "0.0633283349669971"
+        EstPropPersons25PlusHighSchoolMax: "0.531645569620253"
+        EstPropPersons5PlusNoEnglish: "0.0750708215297451"
+        EstPropNonHispWhite_SE: "0.105181283383554"
+  ExposuresBundle_cmaq_cmaq_output:
+    properties:
+      date_time:
+        type: "string"
+        format: "date-time"
+        example: "2010-01-01 00:00:00"
+      value:
+        type: "number"
+        format: "float"
+        example: 49.819595
+    example:
+      date_time: "2010-01-01 00:00:00"
+      value: 49.819595
+  ExposuresBundle_cmaq_values:
+    properties:
+      variable:
+        type: "string"
+        example: "o3"
+      cmaq_output:
+        type: "array"
+        items:
+          $ref: "#/definitions/ExposuresBundle_cmaq_cmaq_output"
+    example:
+      variable: "o3"
+      cmaq_output:
+      - date_time: "2010-01-01 00:00:00"
+        value: 49.819595
+      - date_time: "2010-01-01 00:00:00"
+        value: 49.819595
+  ExposuresBundle_cmaq:
+    properties:
+      values:
+        type: "array"
+        items:
+          $ref: "#/definitions/ExposuresBundle_cmaq_values"
+    example:
+      values:
+      - variable: "o3"
+        cmaq_output:
+        - date_time: "2010-01-01 00:00:00"
+          value: 49.819595
+        - date_time: "2010-01-01 00:00:00"
+          value: 49.819595
+      - variable: "o3"
+        cmaq_output:
+        - date_time: "2010-01-01 00:00:00"
+          value: 49.819595
+        - date_time: "2010-01-01 00:00:00"
+          value: 49.819595
+  ExposuresBundle_roadway:
+    properties:
+      name:
+        type: "string"
+        example: "20000015068"
+      roadtype:
+        type: "string"
+        example: "Urban Restricted Access"
+      distance:
+        type: "number"
+        format: "double"
+        example: 113.16539796000000706044374965131282806396484375
+      aadt:
+        type: "number"
+        format: "integer"
+        example: 45000
+      speed:
+        type: "number"
+        format: "integer"
+        example: 45
+      through_lanes:
+        type: "number"
+        format: "integer"
+        example: 4
+    example: "{\"aadt\":45000,\"distance\":113.16539796,\"roadtype\":\"Urban Restricted\
+      \ Access\",\"route_id\":\"20000015068\",\"speed\":45,\"through_lanes\":4}"
+  ExposuresBundle_socioecon:
+    properties:
+      geoid:
+        type: "string"
+        example: "15000US010010201001"
+      EstTotalPop:
+        type: "string"
+        example: "745"
+      EstTotalPop_SE:
+        type: "string"
+        example: "137.530360284557"
+      EstTotalPop25Plus:
+        type: "string"
+        example: "474"
+      EstTotalPop25Plus_SE:
+        type: "string"
+        example: "76.006249743031"
+      EstPropNonHispWhite:
+        type: "string"
+        example: "0.763758389261745"
+      EstPropNonHispWhite_SE:
+        type: "string"
+        example: "0.105181283383554"
+      EstPropPersons25PlusHighSchoolMax:
+        type: "string"
+        example: "0.531645569620253"
+      EstPropPersons25PlusHighSchoolMax_SE:
+        type: "string"
+        example: "0.0764804287594837"
+      EstPropHouseholdsNoAuto:
+        type: "string"
+        example: "0.0387323943661972"
+      EstPropHouseholdsNoAuto_SE:
+        type: "string"
+        example: "0.039252128205847"
+      EstPropPersonsNoHealthIns:
+        type: "string"
+        example: "0.183892617449664"
+      EstPropPersonsNoHealthIns_SE:
+        type: "string"
+        example: "0.0633283349669971"
+      EstPropPersons5PlusNoEnglish:
+        type: "string"
+        example: "0.0750708215297451"
+      EstPropPersons5PlusNoEnglish_SE:
+        type: "string"
+        example: "0.040387048517137"
+      MedianHouseholdIncome:
+        type: "string"
+        example: "$29744.00"
+      MedianHouseholdIncome_SE:
+        type: "string"
+        example: "20687.8291659613"
+    example:
+      EstTotalPop: "745"
+      EstTotalPop25Plus: "474"
+      EstPropPersons25PlusHighSchoolMax_SE: "0.0764804287594837"
+      EstPropPersons5PlusNoEnglish_SE: "0.040387048517137"
+      EstPropHouseholdsNoAuto_SE: "0.039252128205847"
+      EstPropNonHispWhite: "0.763758389261745"
+      EstTotalPop25Plus_SE: "76.006249743031"
+      MedianHouseholdIncome: "$29744.00"
+      EstTotalPop_SE: "137.530360284557"
+      EstPropPersonsNoHealthIns: "0.183892617449664"
+      geoid: "15000US010010201001"
+      EstPropHouseholdsNoAuto: "0.0387323943661972"
+      MedianHouseholdIncome_SE: "20687.8291659613"
+      EstPropPersonsNoHealthIns_SE: "0.0633283349669971"
+      EstPropPersons25PlusHighSchoolMax: "0.531645569620253"
+      EstPropPersons5PlusNoEnglish: "0.0750708215297451"
+      EstPropNonHispWhite_SE: "0.105181283383554"
+parameters:
+  coords_file:
+    name: "coords_file"
+    in: "formData"
+    description: "input file with list of lat,lon coordinates (1 pair per line; decimal\
+      \ format - WGS84 assumed)"
+    required: true
+    type: "file"
+  start_date:
+    name: "start_date"
+    in: "query"
+    description: "start date of range (ex: 2010-01-01) - if not provided, no CMAQ\
+      \ data will be returned"
+    required: false
+    type: "string"
+    format: "date"
+  end_date:
+    name: "end_date"
+    in: "query"
+    description: "end date of range (ex: 2010-01-02) - if not provided, no CMAQ data\
+      \ will be returned"
+    required: false
+    type: "string"
+    format: "date"
